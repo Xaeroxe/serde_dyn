@@ -1,0 +1,7 @@
+[package]
+name = "serde_dyn"
+version = "0.1.0"
+authors = ["Jacob Kiesel <kieseljake@gmail.com>"]
+
+[dependencies]
+serde = "1.0"
