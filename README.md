@@ -1,4 +1,4 @@
-# serde_dyn
+# serde_dyn [![Crates.io][https://img.shields.io/crates/v/serde_dyn.svg]][https://crates.io/crates/serde_dyn]
 Rust crate that assists with automatically identifying types in serialized data.
 
 This allows you to use UUID values to select deserialization instructions to use at runtime,
