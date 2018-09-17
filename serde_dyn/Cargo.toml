@@ -2,6 +2,11 @@
 name = "serde_dyn"
 version = "0.1.0"
 authors = ["Jacob Kiesel <kieseljake@gmail.com>"]
+documentation = "https://docs.rs/serde_dyn/"
+description = "A package that allows you to dynamically select which type to deserialize at runtime via UUID values specified per type."
+repository = "https://github.com/Xaeroxe/serde_dyn/"
+keywords = ["serde", "uuid", "dynamic", "serialization"]
+license = "MIT/Apache-2.0"
 
 [dependencies]
 serde = "1.0"
