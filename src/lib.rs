@@ -1,6 +1,6 @@
 extern crate serde;
 
-use serde::{Deserialize, Deserializer};
+use serde::de::{Deserializer, DeserializeOwned};
 use std::any::Any;
 use std::collections::HashMap;
 
@@ -8,17 +8,17 @@ pub trait TypeUuid {
     const UUID: &'static str;
 }
 
-pub trait DeserializeDyn<'de>: Deserialize<'de> + Any {
-    fn deserialize_dyn<D>(deserializer: D) -> Result<Box<dyn Any>, D::Error>
+pub trait DeserializeDyn: DeserializeOwned + Any {
+    fn deserialize_dyn<'de, D>(deserializer: D) -> Result<Box<dyn Any>, D::Error>
     where
         D: Deserializer<'de>;
 }
 
-impl<'de, T> DeserializeDyn<'de> for T
+impl<T> DeserializeDyn for T
 where
-    T: Deserialize<'de> + Any,
+    T: DeserializeOwned + Any,
 {
-    fn deserialize_dyn<D>(deserializer: D) -> Result<Box<dyn Any>, D::Error>
+    fn deserialize_dyn<'de, D>(deserializer: D) -> Result<Box<dyn Any>, D::Error>
     where
         D: Deserializer<'de>,
     {
@@ -40,7 +40,7 @@ impl<'de, D> TUSM<'de, D> where D: Deserializer<'de> {
         }
     }
 
-    pub fn register<T: DeserializeDyn<'de> + TypeUuid>(&mut self) {
+    pub fn register<T: DeserializeDyn + TypeUuid>(&mut self) {
         self.mapping.insert(T::UUID, T::deserialize_dyn);
     }
 
@@ -73,12 +73,10 @@ mod tests {
         tusm.register::<i32>();
 
 
-        let thing = tusm.deserialize_with_uuid(
+        let new_value = *tusm.deserialize_with_uuid(
             i32::UUID,
             &mut deserializer,
-        );
-        let thing = thing.unwrap();
-        let new_value = *thing.downcast::<i32>().unwrap();
+        ).unwrap().downcast::<i32>().unwrap();
         assert_eq!(new_value, 5);
     }
 }
