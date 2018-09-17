@@ -9,20 +9,18 @@ pub trait TypeUuid {
 }
 
 pub trait DeserializeDyn<'de>: Deserialize<'de> + Any {
-    fn deserialize_dyn<D>(deserializer: &'de mut D) -> Result<Box<dyn Any>, <&'de mut D as Deserializer<'de>>::Error>
+    fn deserialize_dyn<D>(deserializer: D) -> Result<Box<dyn Any>, D::Error>
     where
-        D: 'de,
-        &'de mut D: Deserializer<'de>;
+        D: Deserializer<'de>;
 }
 
 impl<'de, T> DeserializeDyn<'de> for T
 where
     T: Deserialize<'de> + Any,
 {
-    fn deserialize_dyn<D>(deserializer: &'de mut D) -> Result<Box<dyn Any>, <&'de mut D as Deserializer<'de>>::Error>
+    fn deserialize_dyn<D>(deserializer: D) -> Result<Box<dyn Any>, D::Error>
     where
-        D: 'de,
-        &'de mut D: Deserializer<'de>,
+        D: Deserializer<'de>,
     {
         Self::deserialize(deserializer).map(|i| Box::new(i) as Box<dyn Any>)
     }
@@ -31,11 +29,11 @@ where
 /// TUSM aka Type Uuid Serde Mapper
 ///
 /// This structure maps Type Guids to Serde functions
-pub struct TUSM<'de, D> where D: 'de, &'de mut D: Deserializer<'de> {
-    mapping: HashMap<&'static str, fn(&'de mut D) -> Result<Box<dyn Any>, <&'de mut D as Deserializer<'de>>::Error>>,
+pub struct TUSM<'de, D> where D: Deserializer<'de> {
+    mapping: HashMap<&'static str, fn(D) -> Result<Box<dyn Any>, D::Error>>,
 }
 
-impl<'de, D> TUSM<'de, D> where &'de mut D: Deserializer<'de> {
+impl<'de, D> TUSM<'de, D> where D: Deserializer<'de> {
     pub fn new() -> Self {
         Self {
             mapping: HashMap::new(),
@@ -49,8 +47,8 @@ impl<'de, D> TUSM<'de, D> where &'de mut D: Deserializer<'de> {
     pub fn deserialize_with_uuid(
         &self,
         uuid: &str,
-        deserializer: &'de mut D,
-    ) -> Result<Box<dyn Any>, <&'de mut D as Deserializer<'de>>::Error> {
+        deserializer: D,
+    ) -> Result<Box<dyn Any>, D::Error> {
         self.mapping
             .get(uuid)
             .expect("Type not registered!  Please register this type first.")(deserializer)
@@ -71,6 +69,7 @@ mod tests {
     fn deser_test() {
         let mut deserializer = ron::de::Deserializer::from_str("5").unwrap();
         let mut tusm = TUSM::new();
+
         tusm.register::<i32>();
 
 
