@@ -5,7 +5,7 @@ use std::any::Any;
 use std::collections::HashMap;
 
 pub trait TypeUuid {
-    const UUID: &'static str;
+    const UUID: u128;
 }
 
 pub trait DeserializeDyn: DeserializeOwned + Any {
@@ -30,7 +30,7 @@ where
 ///
 /// This structure maps Type Guids to Serde functions
 pub struct TUSM<'de, D> where D: Deserializer<'de> {
-    mapping: HashMap<&'static str, fn(D) -> Result<Box<dyn Any>, D::Error>>,
+    mapping: HashMap<u128, fn(D) -> Result<Box<dyn Any>, D::Error>>,
 }
 
 impl<'de, D> TUSM<'de, D> where D: Deserializer<'de> {
@@ -46,11 +46,11 @@ impl<'de, D> TUSM<'de, D> where D: Deserializer<'de> {
 
     pub fn deserialize_with_uuid(
         &self,
-        uuid: &str,
+        uuid: &u128,
         deserializer: D,
     ) -> Result<Box<dyn Any>, D::Error> {
         self.mapping
-            .get(uuid)
+            .get(&uuid)
             .expect("Type not registered!  Please register this type first.")(deserializer)
     }
 }
@@ -62,7 +62,7 @@ mod tests {
     use super::*;
 
     impl TypeUuid for i32 {
-        const UUID: &'static str = "i32";
+        const UUID: u128 = 1;
     }
 
     #[test]
@@ -74,7 +74,7 @@ mod tests {
 
 
         let new_value = *tusm.deserialize_with_uuid(
-            i32::UUID,
+            &i32::UUID,
             &mut deserializer,
         ).unwrap().downcast::<i32>().unwrap();
         assert_eq!(new_value, 5);
