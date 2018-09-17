@@ -1,6 +1,8 @@
 extern crate serde;
 
-use serde::de::{Deserializer, DeserializeOwned};
+pub mod uuid;
+
+use serde::de::{DeserializeOwned, Deserializer};
 use std::any::Any;
 use std::collections::HashMap;
 
@@ -29,11 +31,17 @@ where
 /// TUSM aka Type Uuid Serde Mapper
 ///
 /// This structure maps Type Guids to Serde functions
-pub struct TUSM<'de, D> where D: Deserializer<'de> {
+pub struct TUSM<'de, D>
+where
+    D: Deserializer<'de>,
+{
     mapping: HashMap<u128, fn(D) -> Result<Box<dyn Any>, D::Error>>,
 }
 
-impl<'de, D> TUSM<'de, D> where D: Deserializer<'de> {
+impl<'de, D> TUSM<'de, D>
+where
+    D: Deserializer<'de>,
+{
     pub fn new() -> Self {
         Self {
             mapping: HashMap::new(),
@@ -61,10 +69,6 @@ mod tests {
 
     use super::*;
 
-    impl TypeUuid for i32 {
-        const UUID: u128 = 1;
-    }
-
     #[test]
     fn deser_test() {
         let mut deserializer = ron::de::Deserializer::from_str("5").unwrap();
@@ -72,11 +76,11 @@ mod tests {
 
         tusm.register::<i32>();
 
-
-        let new_value = *tusm.deserialize_with_uuid(
-            &i32::UUID,
-            &mut deserializer,
-        ).unwrap().downcast::<i32>().unwrap();
+        let new_value = *tusm
+            .deserialize_with_uuid(&i32::UUID, &mut deserializer)
+            .unwrap()
+            .downcast::<i32>()
+            .unwrap();
         assert_eq!(new_value, 5);
     }
 }
