@@ -1,36 +1,34 @@
+extern crate fnv;
 extern crate serde;
 
-pub mod uuid;
+mod uuid;
 
+use fnv::FnvHashMap as HashMap;
 use serde::de::{DeserializeOwned, Deserializer};
 use std::any::Any;
-use std::collections::HashMap;
 
+/// Provides a statically defined UUID for a Rust type.  It's recommended to implement this
+/// by generating a v4 UUID, and transmuting it into a `u128`.  Here's an example of how to do so
+///
+/// ```
+/// extern crate uuid;
+/// use std::mem::transmute;
+/// use uuid::Uuid;
+
+/// fn main() {
+///     println!("{}", unsafe {transmute::<[u8; 16], u128>(*Uuid::new_v4().as_bytes())});
+/// }
+/// ```
+///
+/// All types registered with the `TUSM` must have a unique value provided for this trait.
 pub trait TypeUuid {
     const UUID: u128;
 }
 
-pub trait DeserializeDyn: DeserializeOwned + Any {
-    fn deserialize_dyn<'de, D>(deserializer: D) -> Result<Box<dyn Any>, D::Error>
-    where
-        D: Deserializer<'de>;
-}
-
-impl<T> DeserializeDyn for T
-where
-    T: DeserializeOwned + Any,
-{
-    fn deserialize_dyn<'de, D>(deserializer: D) -> Result<Box<dyn Any>, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        Self::deserialize(deserializer).map(|i| Box::new(i) as Box<dyn Any>)
-    }
-}
-
 /// TUSM aka Type Uuid Serde Mapper
 ///
-/// This structure maps Type Guids to Serde functions
+/// This structure maps Type Uuids to Serde functions
+#[derive(Clone, Debug)]
 pub struct TUSM<'de, D>
 where
     D: Deserializer<'de>,
@@ -44,14 +42,27 @@ where
 {
     pub fn new() -> Self {
         Self {
-            mapping: HashMap::new(),
+            mapping: HashMap::default(),
         }
     }
 
-    pub fn register<T: DeserializeDyn + TypeUuid>(&mut self) {
-        self.mapping.insert(T::UUID, T::deserialize_dyn);
+    /// Adds the provided type to the list of types this `TUSM` can deserialize.
+    pub fn register<T: DeserializeOwned + Any + TypeUuid>(&mut self) {
+        self.manually_register(T::UUID, |deserializer| {
+            T::deserialize(deserializer).map(|i| Box::new(i) as Box<dyn Any>)
+        });
     }
 
+    /// Adds a mapping entry between the provided UUID and the provided deserialization function.
+    ///
+    /// Please only use this if absolutely necessary, `register` is the preferred alternative.
+    pub fn manually_register(&mut self, uuid: u128, function: fn(D) -> Result<Box<dyn Any>, D::Error>)
+    {
+        self.mapping.insert(uuid, function);
+    }
+
+    /// Using the provided UUID, attempt to deserialize the next value according to previously
+    /// registered mappings.  If no registration for the UUID is found, this will panic.
     pub fn deserialize_with_uuid(
         &self,
         uuid: &u128,

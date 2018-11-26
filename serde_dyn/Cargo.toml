@@ -1,6 +1,6 @@
 [package]
 name = "serde_dyn"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Jacob Kiesel <kieseljake@gmail.com>"]
 documentation = "https://docs.rs/serde_dyn/"
 description = "A package that allows you to dynamically select which type to deserialize at runtime via UUID values specified per type."
@@ -10,6 +10,8 @@ license = "MIT/Apache-2.0"
 
 [dependencies]
 serde = "1.0"
+fnv = "1.0"
 
 [dev-dependencies]
 ron = "0.4"
+uuid = { version = "0.7", features = ["v4"] }
