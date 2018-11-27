@@ -25,6 +25,21 @@ pub trait TypeUuid {
     const UUID: u128;
 }
 
+/// Allows the TypeUuid constants to be retrieved via a trait object.  It is automatically implemented
+/// for all types that implement TypeUuid.
+/// 
+/// It is theoretically possible to manually implement this independent of `TypeUuid`.  Please don't.
+/// It is critical that this return value be deterministic, and manual implementation could prevent that.
+pub trait TypeUuidDynamic {
+    fn uuid(&self) -> u128;
+}
+
+impl<T: TypeUuid> TypeUuidDynamic for T {
+    fn uuid(&self) -> u128 {
+        Self::UUID
+    }
+}
+
 /// TUSM aka Type Uuid Serde Mapper
 ///
 /// This structure maps Type Uuids to Serde functions
