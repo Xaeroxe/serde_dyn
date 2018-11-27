@@ -1,7 +1,7 @@
 extern crate fnv;
 extern crate serde;
 
-mod uuid;
+pub mod uuid;
 
 use fnv::FnvHashMap as HashMap;
 use serde::de::{DeserializeOwned, Deserializer};
@@ -27,7 +27,7 @@ pub trait TypeUuid {
 
 /// Allows the TypeUuid constants to be retrieved via a trait object.  It is automatically implemented
 /// for all types that implement TypeUuid.
-/// 
+///
 /// It is theoretically possible to manually implement this independent of `TypeUuid`.  Please don't.
 /// It is critical that this return value be deterministic, and manual implementation could prevent that.
 pub trait TypeUuidDynamic {
