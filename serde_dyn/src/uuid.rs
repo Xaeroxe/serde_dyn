@@ -3,13 +3,29 @@ use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV
 use std::num::{NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8};
 use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime};
-use TypeUuid;
 
+/// This macro provides an easy way to implement `TypeUuid` for multiple types quickly and easily.
+///
+/// Here's an example
+///
+/// ```
+/// #[macro_use]
+/// extern crate serde_dyn;
+/// # fn main() {
+/// struct Foo;
+/// struct Bar;
+///
+/// uuid!{
+///     Foo => 26467239590335867902125718156548485806,
+///     Bar => 288988313984334184289155767456360199038
+/// }
+/// # }
+/// ```
 #[macro_export]
 macro_rules! uuid {
     ($($type:ty => $id:expr),*) => {
         $(
-            impl TypeUuid for $type {
+            impl $crate::TypeUuid for $type {
                 const UUID: u128 = $id;
             }
         )*
