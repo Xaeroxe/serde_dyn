@@ -5,6 +5,7 @@ use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime};
 use TypeUuid;
 
+#[macro_export]
 macro_rules! uuid {
     ($($type:ty => $id:expr),*) => {
         $(
