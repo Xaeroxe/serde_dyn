@@ -5,7 +5,10 @@ mod uuid;
 
 use fnv::FnvHashMap as HashMap;
 use serde::de::{DeserializeOwned, Deserializer};
+
 use std::any::Any;
+use std::error::Error as StdError;
+use std::fmt::{Debug, Display, Error as FmtError, Formatter};
 
 /// Provides a statically defined UUID for a Rust type.  It's recommended to implement this
 /// by generating a v4 UUID, and transmuting it into a `u128`.  Here's an example of how to do so
@@ -43,7 +46,7 @@ impl<T: TypeUuid> TypeUuidDynamic for T {
 /// TUSM aka Type Uuid Serde Mapper
 ///
 /// This structure maps Type Uuids to Serde functions
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct TUSM<'de, D>
 where
     D: Deserializer<'de>,
@@ -82,12 +85,41 @@ where
         &self,
         uuid: &u128,
         deserializer: D,
-    ) -> Result<Box<dyn Any>, D::Error> {
-        self.mapping
-            .get(&uuid)
-            .expect("Type not registered!  Please register this type first.")(deserializer)
+    ) -> Result<Box<dyn Any>, SerdeDynError<'de, D>> {
+        match self.mapping.get(&uuid) {
+            Some(f) => f(deserializer).map_err(SerdeDynError::DeserializerError),
+            None => Err(SerdeDynError::UuidNotFound),
+        }
     }
 }
+
+#[derive(Clone, PartialEq, Eq)]
+pub enum SerdeDynError<'de, D: Deserializer<'de>> {
+    /// A Uuid was passed in and we didn't have a mapping for it.
+    UuidNotFound,
+    /// The deserialization function returned an error.
+    DeserializerError(D::Error),
+}
+
+impl<'de, D: Deserializer<'de>> Debug for SerdeDynError<'de, D> {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
+        match *self {
+            SerdeDynError::UuidNotFound => write!(f, "UuidNotFound"),
+            SerdeDynError::DeserializerError(ref e) => write!(f, "DeserializerError({:?})", e),
+        }
+    }
+}
+
+impl<'de, D: Deserializer<'de>> Display for SerdeDynError<'de, D> {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
+        match *self {
+            SerdeDynError::UuidNotFound => write!(f, "Uuid requested not found in TUSM."),
+            SerdeDynError::DeserializerError(ref e) => write!(f, "Deserialization error: {}", e),
+        }
+    }
+}
+
+impl<'de, D: Deserializer<'de>> StdError for SerdeDynError<'de, D> {}
 
 #[cfg(test)]
 mod tests {
