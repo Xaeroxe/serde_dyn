@@ -80,7 +80,7 @@ where
     }
 
     /// Using the provided UUID, attempt to deserialize the next value according to previously
-    /// registered mappings.  If no registration for the UUID is found, this will panic.
+    /// registered mappings.
     pub fn deserialize_with_uuid(
         &self,
         uuid: &u128,
