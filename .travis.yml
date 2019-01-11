@@ -21,6 +21,7 @@ script:
   - |
       if [ ${TRAVIS_RUST_VERSION} == "stable" ]
       then
+        rustup component add rustfmt
         cargo fmt --version
         cargo fmt --all -- --check
       fi
