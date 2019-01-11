@@ -74,8 +74,11 @@ where
     /// Adds a mapping entry between the provided UUID and the provided deserialization function.
     ///
     /// Please only use this if absolutely necessary, `register` is the preferred alternative.
-    pub fn manually_register(&mut self, uuid: u128, function: fn(D) -> Result<Box<dyn Any>, D::Error>)
-    {
+    pub fn manually_register(
+        &mut self,
+        uuid: u128,
+        function: fn(D) -> Result<Box<dyn Any>, D::Error>,
+    ) {
         self.mapping.insert(uuid, function);
     }
 
