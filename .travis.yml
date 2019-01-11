@@ -16,3 +16,10 @@ script:
   - cd ../uuid_gen
   - cargo build --verbose --all
   - cargo test --verbose --all
+
+after_success:
+  - |
+      [ $TRAVIS_BRANCH = master ] &&
+      [ $TRAVIS_PULL_REQUEST = false ] &&
+      cd serde_dyn &&
+      cargo publish --token ${CRATESIO_TOKEN}
