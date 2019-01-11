@@ -10,12 +10,29 @@ matrix:
 cache: cargo
 
 script:
+  - |
+      if [ ${TRAVIS_RUST_VERSION} == "stable" ]
+      then
+        export RUSTFLAGS="-D warnings"
+      fi
   - cd serde_dyn
   - cargo build --verbose --all
   - cargo test --verbose --all
+  - |
+      if [ ${TRAVIS_RUST_VERSION} == "stable" ]
+      then
+        cargo fmt --version
+        cargo fmt --all -- --check
+      fi
   - cd ../uuid_gen
   - cargo build --verbose --all
   - cargo test --verbose --all
+  - |
+      if [ ${TRAVIS_RUST_VERSION} == "stable" ]
+      then
+        cargo fmt --version
+        cargo fmt --all -- --check
+      fi
 
 after_success:
   - |
