@@ -1,4 +1,4 @@
-# serde_dyn [![Crates.io](https://img.shields.io/crates/v/serde_dyn.svg)](https://crates.io/crates/serde_dyn)
+# serde_dyn [![Crates.io](https://img.shields.io/crates/v/serde_dyn.svg)](https://crates.io/crates/serde_dyn) [![Travis](https://travis-ci.com/Xaeroxe/serde_dyn.svg?branch=master)](https://travis-ci.com/Xaeroxe/serde_dyn)
 
 Rust crate that assists with automatically identifying types in serialized data.
 
