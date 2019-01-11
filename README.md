@@ -12,7 +12,7 @@ but I hope you'll find it useful outside of that context too.
 
 I welcome contributions and alterations to this project! [Here's some info to help you get started.](https://help.github.com/articles/about-pull-requests/)
 
-- If you would consider your change "substantial" open an issue on the issues tab so we can discuss it before you build it.
+- If you would consider your change substantial open an issue on the issues tab so we can discuss it before you build it.
 - If you're fixing a bug please provide a unit test for the bug fixed so we don't do it again.
 - If applicable, new features should have some basic unit tests added too.
 - Please format your code with the most recent stable release of rustfmt before submitting your PR.
