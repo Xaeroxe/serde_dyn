@@ -11,6 +11,7 @@ license = "MIT/Apache-2.0"
 [dependencies]
 serde = "1.0"
 fnv = "1.0"
+type-uuid = "0.1.0"
 
 [dev-dependencies]
 ron = "0.4"

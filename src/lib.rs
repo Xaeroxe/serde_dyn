@@ -1,47 +1,14 @@
 extern crate fnv;
 extern crate serde;
-
-mod uuid;
+extern crate type_uuid;
 
 use fnv::FnvHashMap as HashMap;
 use serde::de::{DeserializeOwned, Deserializer};
+use type_uuid::TypeUuid;
 
 use std::any::Any;
 use std::error::Error as StdError;
 use std::fmt::{Debug, Display, Error as FmtError, Formatter};
-
-/// Provides a statically defined UUID for a Rust type.  It's recommended to implement this
-/// by generating a v4 UUID, and transmuting it into a `u128`.  Here's an example of how to do so
-///
-/// ```
-/// extern crate uuid;
-/// use std::mem::transmute;
-/// use uuid::Uuid;
-///
-/// fn main() {
-///     println!("{}", unsafe {transmute::<[u8; 16], u128>(*Uuid::new_v4().as_bytes())});
-/// }
-/// ```
-///
-/// All types registered with the `TUSM` must have a unique value provided for this trait.
-pub trait TypeUuid {
-    const UUID: u128;
-}
-
-/// Allows the TypeUuid constants to be retrieved via a trait object.  It is automatically implemented
-/// for all types that implement TypeUuid.
-///
-/// It is theoretically possible to manually implement this independent of `TypeUuid`.  Please don't.
-/// It is critical that this return value be deterministic, and manual implementation could prevent that.
-pub trait TypeUuidDynamic {
-    fn uuid(&self) -> u128;
-}
-
-impl<T: TypeUuid> TypeUuidDynamic for T {
-    fn uuid(&self) -> u128 {
-        Self::UUID
-    }
-}
 
 /// TUSM aka Type Uuid Serde Mapper
 ///
@@ -51,7 +18,7 @@ pub struct TUSM<'de, D>
 where
     D: Deserializer<'de>,
 {
-    mapping: HashMap<u128, fn(D) -> Result<Box<dyn Any>, D::Error>>,
+    mapping: HashMap<type_uuid::Bytes, fn(D) -> Result<Box<dyn Any>, D::Error>>,
 }
 
 impl<'de, D> TUSM<'de, D>
@@ -76,7 +43,7 @@ where
     /// Please only use this if absolutely necessary, `register` is the preferred alternative.
     pub fn manually_register(
         &mut self,
-        uuid: u128,
+        uuid: type_uuid::Bytes,
         function: fn(D) -> Result<Box<dyn Any>, D::Error>,
     ) {
         self.mapping.insert(uuid, function);
@@ -86,10 +53,10 @@ where
     /// registered mappings.
     pub fn deserialize_with_uuid(
         &self,
-        uuid: &u128,
+        uuid: &type_uuid::Bytes,
         deserializer: D,
     ) -> Result<Box<dyn Any>, SerdeDynError<'de, D>> {
-        match self.mapping.get(&uuid) {
+        match self.mapping.get(uuid) {
             Some(f) => f(deserializer).map_err(SerdeDynError::DeserializerError),
             None => Err(SerdeDynError::UuidNotFound),
         }
