@@ -15,7 +15,6 @@ script:
       then
         export RUSTFLAGS="-D warnings"
       fi
-  - cd serde_dyn
   - cargo build --verbose --all
   - cargo test --verbose --all
   - |
@@ -25,19 +24,9 @@ script:
         cargo fmt --version
         cargo fmt --all -- --check
       fi
-  - cd ../uuid_gen
-  - cargo build --verbose --all
-  - cargo test --verbose --all
-  - |
-      if [ ${TRAVIS_RUST_VERSION} == "stable" ]
-      then
-        cargo fmt --version
-        cargo fmt --all -- --check
-      fi
 
 after_success:
   - |
       [ $TRAVIS_BRANCH = master ] &&
       [ $TRAVIS_PULL_REQUEST = false ] &&
-      cd ../serde_dyn &&
       cargo publish --token ${CRATESIO_TOKEN}
